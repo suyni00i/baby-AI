@@ -1,0 +1,80 @@
+---
+title: "TEST 3"
+author: "suyni00i"
+date: "2023-05-23"
+output: html_document
+---
+
+### 0. Packages
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+## Data Wragling Problem
+### 1.1 데이터를 불러와서 다음과 같이 출력하시오.[10점]
+```{r}
+age <- read.csv("/Users/suyni00i/Documents/DAT/R Session/data/Tour_age.csv")
+gender <- read.csv("/Users/suyni00i/Documents/DAT/R Session/data/Tour_gender.csv")
+purpose <- read.csv("/Users/suyni00i/Documents/DAT/R Session/data/Tour_purpose.csv")
+
+data <- cbind(age %>% select(-growth, -share),
+              gender %>% select(male:crewman),
+              purpose %>% select(tourism:others))
+head(data)
+```
+
+### 1.2 다음과 같이 변수 명을 변경 후 str()을 통해 출력하시오[15점]
+```{r}
+data <- data %>%
+  rename("age0~20" = age0.20) %>% 
+  rename("age21~30" = age21.30) %>% 
+  rename("age31~40" = age31.40) %>% 
+  rename("age41~50" = age41.50) %>% 
+  rename("age51~60" = age51.60)
+
+data$date <- factor(data$date, levels = c("2019-5", "2019-6", "2019-7", "2019-8", "2019-9", "2019-10", "2019-11", "2019-12", "2020-1", "2020-2", "2020-3", "2020-4"))
+
+str(data)
+# NA 값을 어떻게 처리해야 할지 모르겠습니다......
+```
+
+### 1.3 월별 총 외국인 방문객 수를 구하시오. [10점]
+```{r}
+data %>%
+  group_by(date) %>% 
+  summarise(total = sum(visitor))
+```
+
+### 1.4 월별, 나이 구간별 외국인 방문객 수를 구하시오. [20점]
+```{r}
+data_long <- data %>%
+  gather(key = "age", value = "total", starts_with("age")) %>%
+  mutate(age = factor(age, levels = unique(age))) %>%
+  arrange(date, age)
+
+result <- data_long %>% 
+  group_by(date, age) %>% 
+  summarise(total = sum(total))
+
+result <- result %>% 
+  group_by(date) %>% 
+  top_n(2, total)
+
+result
+```
+
+## Visualization Problem(Using ggplot2)
+### 2.1 국가별 방문객 수 추이를 그리시오 [25점]
+```{r}
+data <- data %>% 
+  filter(nation %in% c("China", "Japan", "USA", "Vietnam", "Russia"))
+
+ggplot(data) +
+  geom_bar(aes(x = date, y = visitor, fill = nation), position = "dodge", stat = "identity") +
+  facet_wrap(~ nation, ncol = 5) +
+  scale_x_discrete(breaks = c("2019-6", "2019-9", "2019-12", "2020-3")) +
+  theme(axis.text.x = element_text(angle = 45))
+```
+

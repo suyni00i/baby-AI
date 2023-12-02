@@ -1,0 +1,189 @@
+---
+title: 'ggplot2: 2. Line Graphs'
+author: "suyni00i"
+date: "2023-05-13"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+```
+
+# Making a Basic Line Graph
+```{r}
+str(BOD)
+```
+
+```{r}
+ggplot(BOD, aes(x = Time, y = demand)) + geom_line()
+# x = numeric
+```
+
+```{r}
+ggplot(BOD, aes(x = factor(Time), y = demand, group = 1)) + geom_line()
+# group = 1: every data is grouped as one
+```
+
+> geom_line(): line graph
+
+```{r}
+ggplot(BOD, aes(x = Time, y = demand)) + geom_line() +
+  ylim(0, max(BOD$demand))
+# set y-axis range 0~max(BOD%demand)
+```
+
+# Adding Points to a Line Graph
+```{r}
+ggplot(BOD, aes(x = Time, y = demand)) + geom_line() + geom_point()
+```
+> geom_point(): add points
+
+```{r}
+str(worldpop)
+```
+
+```{r}
+p <- ggplot(worldpop, aes(x = Year, y = Population)) +
+  geom_line() + geom_point()
+p
+```
+
+```{r}
+p + scale_y_log10()
+# revert y-axis to log10 scale
+```
+
+# Making a Line Graph with Multiple Lines
+```{r}
+str(ToothGrowth)
+```
+
+```{r}
+library(plyr)
+tg <- ddply(ToothGrowth, c("supp", "dose"), summarise, length = mean(len))
+tg
+```
+
+```{r}
+# map supp to color
+ggplot(tg, aes(x = dose, y = length, color = supp)) + geom_line()
+# color = supp: set color of line accd to supp
+```
+
+```{r}
+# map supp to linetype
+ggplot(tg, aes(x = dose, y = length, color = supp, linetype = supp)) +
+  geom_line()
+# linetype = supp: set type of line accd to supp
+```
+> ddply(ToothGrowth, c("supp", "dose"), summarise, length = mean(len)): print dataframe w/ _mean(len)_ accd to comb between _supp_ and _dose_
+
+```{r}
+ggplot(tg, aes(x = dose, y = length, shape = supp)) + 
+  geom_line() + geom_point(size = 4)
+# size: size of the point
+```
+
+```{r}
+ggplot(tg, aes(x = dose, y = length, fill = supp)) +
+  geom_line() + geom_point(size = 4, shape = 21)
+# shape: shape of the point, ex. 21 = circle
+```
+> ggplot(..., shape = supp): differ the shape of the point accd to supp
+
+```{r}
+ggplot(tg, aes(x = dose, y = length, shape = supp)) +
+  geom_line(position = position_dodge(0.05)) +
+  geom_point(position = position_dodge(0.05), size = 4)
+```
+> position = position_dodge(): array side-by-side, w/o overlap
+
+# Changing the Appearance of Lines and Points
+```{r}
+ggplot(BOD, aes(x = Time, y = demand)) + 
+  geom_line(linetype = "dashed", size = 1, color = "blue") +
+  geom_point(size = 10, shape = 22, color = "darkred", fill = "pink")
+```
+
+```{r}
+ggplot(BOD, aes(x = Time, y = demand)) + geom_line() +
+  geom_point(size = 10, shape = 21, fill = "white")
+```
+
+# Making a Graph with a Shaded Area
+```{r}
+str(sunspot.year)
+```
+
+```{r}
+sunspotyear <- data.frame(
+  Year = as.numeric(time(sunspot.year)),
+  Sunspots = as.numeric(sunspot.year)
+)
+ggplot(sunspotyear, aes(x = Year, y = Sunspots)) + geom_area()
+```
+
+```{r}
+ggplot(sunspotyear, aes(x = Year, y = Sunspots)) +
+  geom_area(fill = "blue", alpha = 0.2) + geom_line()
+```
+> time(sunspot.year): change ts to numeric
+> geom_area(): shade area under line
+> alpha = 0.2: adjust tansparency(0~1: transparent~opaque)
+
+# Making a Stacked Area Graph
+```{r}
+str(uspopage)
+```
+
+```{r}
+ggplot(uspopage, aes(x = Year, y = Thousands, fill = AgeGroup)) + geom_area()
+```
+> fill = AgeGroup: differ color for each _AgeGroup_
+
+```{r}
+p <- ggplot(uspopage, aes(x = Year, y = Thousands, fill = AgeGroup))
+p + geom_area(color = "black", size = 0.2, alpha = 0.4) +
+  scale_fill_brewer(palette = "Blues", breaks = rev(levels(uspopage$AgeGroup))) + theme_bw()
+```
+> color = "black": separate areas w/ _black_ lines
+> scale_fill_brewer(): set color
+> breaks = rev(levels(uspopage$AgeGroup)): reverse _AgeGroup_ level b4 stack
+> theme_bw(): set bg color white
+
+```{r}
+p <- ggplot(uspopage, aes(x = Year, y = Thousands, fill = AgeGroup))
+p + geom_area(color = NA, size = 0.2, alpha = 0.4) +
+  scale_fill_brewer(palette = "Blues", breaks = rev(levels(uspopage$AgeGroup))) + theme_bw()
+```
+
+```{r}
+# removing the border only for legend
+p + geom_area(color = NA, size = 0.2, alpha = 0.4) +
+  scale_fill_brewer(palette = "Blues", breaks = rev(levels(uspopage$AgeGroup))) +
+  geom_line(position = "stack", size = 0.2) + theme_bw()
+```
+> color = NA: delete boundaries among areas
+> geom_line(position = "stack"): add boundaries on graph
+
+# Adding a Confidence Region
+```{r}
+str(climate)
+```
+
+```{r}
+clim <- subset(climate, Source == "Berkeley",
+               select = c("Year", "Anomaly10y", "Unc10y"))
+p <- ggplot(clim, aes(x = Year, y = Anomaly10y))
+# shaded region
+p + geom_ribbon(aes(ymin = Anomaly10y - Unc10y, ymax = Anomaly10y + Unc10y), alpha = 0.2) + geom_line()
+```
+
+```{r}
+# dotted lines
+p + geom_line(aes(y = Anomaly10y - Unc10y), color = "grey50", linetype = "dotted") +
+  geom_line(aes(y = Anomaly10y + Unc10y), color = "grey50", linetype = "dotted") +
+  geom_line(lwd = 1)
+```
+> geom_ribbon(aes(ymin = ___, ymax = ___)): confidence band

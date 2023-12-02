@@ -1,0 +1,114 @@
+---
+title: "TEST 6"
+author: "suyni00i"
+date: "2023-05-26"
+output: html_document
+---
+
+### 0. Packages
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(gridExtra)
+```
+
+## 1. Data Wrangling Problem
+### 1.1 disease 를 불러오고 속성을 확인하시오.[5점]
+```{r}
+disease <- read.csv("/Users/suyni00i/Documents/DAT/R Session/data/disease.csv")
+head(disease)
+```
+
+### 1.2 Data Descripton 을 보고 변수 값과 속성을 변경 후 str()을 이용 해 확인하시오. [20점]
+```{r}
+disease <- filter(disease, gender != "Other" & age >= 40) %>% 
+  mutate(age_group = case_when(
+  40 <= age & age < 50 ~ "40~49age",
+  50 <= age & age < 60 ~ "50~59age",
+  60 <= age & age < 70 ~ "60~69age",
+  70 <= age & age < 80 ~ "70~79age",
+  80 <= age & age < 90 ~ "80~89age",
+))
+
+disease$age_group <- factor(disease$age_group, levels = c("40~49age", "50~59age", "60~69age", "70~79age", "80~89age"))
+
+disease$smoking_status <- factor(disease$smoking_status, levels = c("never smoked", "formerly smoked", "smokes", "Unknown"))
+
+disease$work_type <- factor(disease$work_type, levels = c("children", "Never_worked", "Private", "Self-employed", "Govt_job"))
+
+disease$bmi <- as.numeric(ifelse(disease$bmi == "N/A", NA, disease$bmi))
+
+str(disease)
+```
+
+### 1.3 뇌졸중 환자와 그렇지 않은 사람에 대한 다음 2가지 통계량을 구하시 오. [15점]
+```{r}
+disease %>%
+  group_by(stroke, gender) %>% 
+  summarise(bmi_mean = round(mean(bmi, na.rm = TRUE), digits = 1),
+            glucose_mean = round(mean(avg_glucose_level)))
+```
+
+```{r}
+disease %>% 
+  group_by(stroke, age_group) %>% 
+  summarise(cnt = n()) %>% 
+  mutate(ratio = round(cnt/sum(cnt), digits = 3))
+```
+
+### 1.4 데이터를 long format 형태로 바꾸고 다음과 같이 출력하시오. [10 점]
+```{r}
+long_data <- pivot_longer(disease, cols = c(bmi, avg_glucose_level), names_to = "factor", values_to = "val")
+
+long_data %>% 
+  group_by(stroke, gender, factor) %>% 
+  summarise(val = mean(val, na.rm = TRUE)) %>%
+  mutate(val = ifelse(factor == "avg_glucose_level", round(val, 0), sprintf("%.1f", val)))
+
+long_data
+```
+
+## 2. Visualization Problem(Using ggplot2)
+### 2.1 뇌졸중 환자와 그렇지 않은 사람에 대한 그림을 그리시오 [30점]
+```{r}
+plot1 <- disease %>% 
+  group_by(stroke, age_group, gender) %>% 
+  summarise(n = n()) %>% 
+  mutate(ratio = round(n/sum(n), digit = 3))
+
+head(plot1)
+```
+
+```{r}
+library(scales)
+
+ggplot(plot1) +
+  geom_bar(aes(x = age_group, y = ratio, fill = gender), stat = "identity") +
+  facet_wrap(~ stroke) +
+  geom_text(aes(x = age_group, y = ratio, label = percent(ratio)),
+            position = position_dodge(width = 0.9), vjust = -0.5) +
+  theme(axis.text.x = element_text(angle = 45))
+```
+
+```{r}
+plot2 <-disease %>% 
+  group_by(stroke, gender, smoking_status) %>% 
+  summarise(count = n())
+
+ggplot(plot2) +
+  facet_wrap(~ stroke) +
+  geom_bar(aes(x = gender, y = count, fill = smoking_status), stat = "identity", position = "dodge")
+# stroke = 1인 경우 y축 범위 조절... 실패했습니다
+```
+
+### 2.2 뇌졸중 환자에 대해 성별, 직업별, factor별 수에 대한 정보를 다음과 같이 그리시오. [20점]
+```{r}
+long_data <- long_data %>%
+  filter(stroke == 1) %>% 
+  na.omit(long_data)
+  
+long_data
+# 정말 boxplot에서 막혀요 자꾸...... 죄송합니다
+```
+

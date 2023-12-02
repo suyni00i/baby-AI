@@ -1,0 +1,157 @@
+---
+title: 'ggplot2: 10. Using Colors in Plots'
+author: "suyni00i"
+date: "2023-05-17"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+```
+
+# Setting the Colors of Objects
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point(color = "red")
+```
+
+```{r}
+library(MASS)
+ggplot(birthwt, aes(x = bwt)) + geom_histogram(fill = "red", color = "black")
+```
+
+# Mapping Variables to Colors
+```{r}
+# method 1 | "fill" in "aes()"
+ggplot(cabbage_exp, aes(x = Date, y = Weight, fill = Cultivar)) +
+  geom_col(color = "black", position = "dodge")
+```
+
+```{r}
+# method 2 | "aes(fill = )" in "geom"
+ggplot(cabbage_exp, aes(x = Date, y = Weight)) +
+  geom_col(aes(fill = Cultivar), color = "black", position = "dodge")
+```
+
+```{r}
+# method 1
+ggplot(mtcars, aes(x = wt, y = mpg, color = cyl)) + geom_point()
+```
+
+```{r}
+# method 2
+ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point(aes(color = cyl))
+```
+
+# Using a Different Palette for a Discrete Variable
+```{r}
+str(uspopage)
+```
+
+```{r}
+p <- ggplot(uspopage, aes(x = Year, y = Thousands, fill = AgeGroup)) + geom_area()
+p
+```
+
+```{r}
+p + scale_fill_discrete()
+p + scale_fill_hue()
+p + scale_fill_hue(h = c(0, 100))
+```
+> scale_fill_discrete()/scale_fill_hue(): color of area plot
+* scale_fill_hue(h = c(0, 100)): range from _0_ to _100_, devided equally by the number of var. (default: h = c(0, 360))
+
+```{r}
+p <- ggplot(uspopage, aes(x = Year, y = Thousands, fill = AgeGroup)) + geom_area()
+p + scale_fill_brewer()
+# scale_fill_brewer(): (default: "Blues")
+```
+
+```{r}
+h <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = sex)) +
+  geom_point()
+h
+```
+
+```{r}
+h + scale_color_hue(l = 45)
+# scale_color_hue(): set brightness (default: l = 65)
+```
+
+```{r}
+library(RColorBrewer)
+par(mar = c(0, 4, 0, 0))
+display.brewer.all()
+```
+
+```{r}
+p + scale_fill_brewer(palette = "Oranges")
+p + scale_fill_brewer(palette = "YlGn")
+```
+
+```{r}
+p + scale_fill_grey()
+p + scale_fill_grey(start = 0.7, end = 0)
+```
+> scale_fill_grey(): (default: start = 0.2, end = 0.8)
+* 0(dark) ≤ start, end ≤ 1(bright)
+
+# Using a Manually Defined Palette for a Discrete Variable
+```{r}
+h <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = sex)) +
+  geom_point()
+h
+```
+
+```{r}
+h + scale_color_manual(values = c("red", "blue"))
+```
+> scale_color_manual(): set color name
+
+```{r}
+h <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = sex)) +
+  geom_point()
+h + scale_color_manual(values = c("#CC6666", "#7777DD"))
+```
+
+```{r}
+h + scale_color_manual(values = c(m = "darkblue", f = "pink"))
+```
+
+```{r}
+colors()
+# color names on R
+```
+> scale_color_manual(): set RBG color
+> values = c(m = "darkblue", f = "pink"): set color of value on group var.
+
+# Using a Manually Defined Palette for a Continuous Variable
+```{r}
+p <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = weightLb)) +
+  geom_point(size = 1.5)
+p
+```
+
+```{r}
+p + scale_color_gradient(low = "black", high = "white")
+```
+> scale_color_gradient(low = "black", high = "white"): set color accd to continuous color var.
+* low = _black_, high = _white_ (default: low = "#132B43", high = "#56B1F7")
+
+```{r}
+p + scale_color_gradient2(low = "red", mid = "white", high = "blue", midpoint = 110)
+```
+
+```{r}
+library(scales)
+p + scale_color_gradient2(low = muted("red"), mid = "white", high = muted("blue"), midpoint = 110)
+```
+> scale_color_gradient2(low = "red", mid = "white", high = "blue", midpoint = ): set color accd to continuous color var.
+* low = _red_, mid = _white_, high = _blue_ (mid value = _110_)
+> muted(colour, 1 = 30, c = 70): show RGB color w/ luminance & chroma adjusted
+
+```{r}
+p + scale_color_gradientn(colours = c("darkred", "orange", "yellow", "white"))
+p + scale_color_gradientn(colours = c("red", "blue", "green", "black"))
+```
+> scale_color_gradientn(): set color(4+) accd to continuous color var.

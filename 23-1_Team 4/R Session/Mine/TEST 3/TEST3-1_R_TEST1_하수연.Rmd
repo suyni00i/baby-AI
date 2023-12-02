@@ -1,0 +1,75 @@
+---
+title: "TEST 1"
+author: "suyni00i"
+date: "2023-05-20"
+output: html_document
+---
+
+### 0. Packages
+```{r}
+library(dplyr)
+library(ggplot2)
+library(extrafont)
+```
+
+## Data Wragling Problem
+### 1.1 house_price.csv 를 불러오시오.[5점]
+```{r}
+price <-  read.csv("/Users/suyni00i/Documents/DAT/R Session/data/house_price.csv", fileEncoding = "euc-kr")
+head(price)
+```
+
+### 1.2 데이터의 변수명을 확인하시오[5점]
+```{r}
+names(price)
+```
+
+### 1.3 데이터의 속성을 확인하시오[5점]
+```{r}
+glimpse(price)
+```
+
+### 1.4 다음과 같이 일부 column만 선택하여 price2를 만들고 출력하시 오[5점]
+```{r}
+price2 <- price %>% 
+  select(-3, -7)
+head(price2)
+```
+
+### 1.5 건물용도 별 count를 구하시오[10점]
+```{r}
+price %>% 
+  group_by(건물주용도) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```
+
+### 1.6 지역별 아파트 가격 평균을 구하시오 [25점]
+```{r}
+pricemean <- price %>%  
+  group_by(자치구명) %>% 
+  summarise(mean_price = mean(물건금액, na.rm = TRUE)) %>% 
+  arrange(desc(mean_price))
+
+pricemean$평균집값 <- paste(round(pricemean$mean_price*0.00000001, digit = 2), "억")
+
+head(pricemean, n = 5)
+```
+
+## Visualization Problem(Using ggplot2)
+### 2.1 지역별 건물을 barplot을 활용해 그리시오 [20점]
+```{r}
+par(family = "AppleGothic")
+p <- price[price$자치구명 %in% c("강남구", "서초구", "용산구", "성동구", "송파구"), ]
+ggplot(p) + geom_bar(aes(자치구명, fill = 건물주용도), position = "dodge") +
+  theme(text = element_text(family = "AppleGothic"))
+```
+
+### 2.2 지역별 아파트 가격을 boxplot을 활용해 그리시오 [25점]
+```{r}
+p$집값 <- p$물건금액*0.00000001
+ggplot(p, aes(x = 자치구명, y = 집값, fill = 자치구명)) +
+  geom_boxplot() + ylim(5, 25) +
+  theme(text = element_text(family = "AppleGothic"))
+```
+

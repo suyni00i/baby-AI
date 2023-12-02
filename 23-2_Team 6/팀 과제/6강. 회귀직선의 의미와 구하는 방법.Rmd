@@ -1,0 +1,105 @@
+---
+title: "6강. 회귀직선의 의미와 구하는 방법"
+author: "suyni00i"
+date: "2023-09-09"
+output: html_document
+---
+
+```{r}
+# library("extrafont")
+# font_import()
+```
+
+```{r}
+dir = "/Users/suyni00i/Documents/DAT/Team 06/팀 과제/R/data/examscore.csv"
+```
+
+```{r}
+mydata <- read.csv(dir, header = TRUE)
+plot(mydata$midterm, mydata$final, asp = 1,
+     xlab = "midterm",
+     ylab = "final",
+     main = "score_scatter")
+```
+
+```{r}
+# 직선을 통한 예측
+plot(mydata$midterm, mydata$final, asp = 1,
+     xlab = "midterm",
+     ylab = "final",
+     main = "score_scatter")
+abline(5, 1)
+```
+
+```{r}
+# 회귀직선 결정하기
+plot(mydata$midterm, mydata$final, asp = 1,
+     xlab = "midterm",
+     ylab = "final",
+     main = "score_scatter")
+abline(5, 1)
+abline(-10, 1.5, col = "red")
+```
+
+```{r}
+# Residual sum of square(RSS)
+rss <- function(data, line_info){
+  x <- data[, 1]
+  y <- data[, 2]
+  intercept <- line_info[1]
+  slope <- line_info[2]
+  predict_value = intercept + slope * x
+  result <- sum((y - predict_value)^2)
+  result
+}
+```
+
+```{r}
+rss(mydata[, 3:4], c(5, 1))
+rss(mydata[, 3:4], c(-10, 1.5))
+```
+
+```{r}
+# optim
+result <- optim(par = c(1, 1), fn = rss, data = mydata[, 3:4])
+result$par # 찾은 직선 정보 확인
+result$value # 최소로 만든 함수값
+```
+
+```{r}
+plot(mydata$midterm, mydata$final, asp = 1,
+     xlab = "midterm",
+     ylab = "final",
+     main = "Regression Line")
+abline(5, 1)
+abline(-10, 1.5, col = "red")
+abline(result$par, col = "blue")
+text(80, 20, paste("Regression exp: ",
+                   "y = ", round(result$par[1], 2),
+                   "+", round(result$par[2], 2), "* x"),
+                   col = "black")
+```
+
+```{r}
+lm(final ~ midterm, mydata)
+```
+
+```{r}
+# How to get Regression line w/o optim
+x <- mydata$midterm
+y <- mydata$final
+
+# b: midterm
+b <- cor(x, y) * sd(y) / sd(x)
+b
+
+# a: intercept
+a <- mean(y) - b * mean(x)
+a
+```
+
+```{r}
+y_hat <- a + b * 50
+y_hat
+```
+

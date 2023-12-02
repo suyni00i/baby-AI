@@ -1,0 +1,262 @@
+---
+title: 'ggplot2: 6. Axes'
+author: "suyni00i"
+date: "2023-05-16"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+```
+
+# Swapping X- and Y-Axes
+```{r}
+ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+```
+
+```{r}
+ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot() + coord_flip()
+```
+> coord_flip(): Change two Axes(x <-> y)
+* variation = before change
+
+```{r}
+ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot() + coord_flip() +
+  scale_x_discrete(limits = rev(levels(PlantGrowth$group)))
+```
+> scale_x_discrete(): if discrete(factor) var., graphic option on x-axis
+* if coord_flip(): " on y-axis
+
+# Setting the Range of a Continuous Axis
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p
+```
+
+```{r}
+p + ylim(0, max(PlantGrowth$weight))
+```
+
+```{r}
+# ylim(): shorthand for setting the limits w/ scale_y_continuous()
+p + scale_y_continuous(limits = c(0, max(PlantGrowth$weight)))
+```
+> scale_y_continuous(): if continuous(numeric) var., graphic option on y-axis
+* ylim(): if only range of axis
+
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p + scale_y_continuous(limits = c(5, 6.5))
+# redraw boxplots within the limit
+# use only data matches
+```
+
+```{r}
+p + coord_cartesian(ylim = c(5, 6.5))
+# magnify the limit region
+# use total data, show limited areas on sheet(magnified)
+```
+
+# Reversing a Continuous Axis
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p + scale_y_reverse()
+```
+> scale_y_reverse(): show data on y-axis reversed
+
+# Changing the Order of Items on a Categorical Axis
+```{r}
+g <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p + scale_x_discrete(limits = c("trt1", "ctrl", "trt2"))
+```
+
+```{r}
+p + scale_x_discrete(limits = c("ctrl", "trt1"))
+```
+> scale_x_discrete(limits = ): change order of var./show limited area
+* categorical data
+
+# Setting the Positions of Tick Marks
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p + scale_y_continuous(breaks = c(4, 4.25, 4.5, 5, 6, 8))
+```
+
+```{r}
+mytick <- seq(3.5, 7, by = 0.2)
+p + scale_y_continuous(breaks = mytick) +
+  scale_x_discrete(limits = c("ctrl", "trt1"), breaks = "crtl")
+```
+> scale_x_discrete(): set tick marks of categorical var.
+> scale_y_continuous(): set tick marks of continuous var.
+
+# Removing Tick Marks and Labels
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p + theme(axis.text.y = element_blank())
+# don't show tick label of y-axis
+```
+
+```{r}
+p + theme(axis.ticks = element_blank())
+# don't show tick label of every axes
+```
+
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p + theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+# remove tick label of every axes
+```
+
+```{r}
+p + scale_y_continuous(breaks = NULL)
+# remove grids on y
+```
+
+# Changing the Text of Tick Labels
+```{r}
+hwp = ggplot(heightweight, aes(x = ageYear, y = heightIn)) + geom_point()
+hwp
+```
+
+```{r}
+hwp + scale_y_continuous(breaks = c(50, 56, 60, 66, 72),
+                         labels = c("Tiny", "Really\nshort", "Short", "Medium", "Tallish"))
+# change labels
+```
+
+```{r}
+footinch_formatter <- function (x) {
+  foot <- floor(x / 12)
+  inch <- x %% 12
+  return( paste(foot, "'", inch, "\"", sep = ""))
+}
+footinch_formatter(56:64)
+# function for inch -> feet/inch
+# %%: remainder of division
+```
+
+```{r}
+hwp + scale_y_continuous(labels = footinch_formatter)
+```
+
+```{r}
+hwp + scale_y_continuous(breaks = seq(48, 72, by = 4), labels = footinch_formatter)
+```
+> floot(): int ≤ function factor
+
+```{r}
+timeHMS_formatter <- function (x) {
+  h <- floor(x / 60) # hour
+  m <- floor(x %% 60) # minute
+  s <- round(60 * (x %% 1)) # Round to nearest second
+  lab <- sprintf("%02d:%02d:%02d", h, m, s) # format the strings as HH:MM:SS
+  lab <- gsub("^00:", "", lab) # Remove leading 00: if present
+  lab <- gsub("^0", "", lab) # Remove leading 0 if present
+  return (lab)
+}
+timeHMS_formatter(c(.33, 50, 51, 51.25, 60, 60.1, 130.23, 1234))
+# timeHMS_formatter: return time as HH/MM/SS
+```
+
+# Changing the Appearance of Tick Labels
+```{r}
+bp <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot() +
+  scale_x_discrete(breaks = c("ctrl", "trt1", "trt2"),  labels = c("Control", "Treatment 1", "Treatment 2"))
+bp
+```
+
+```{r}
+bp + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+```{r}
+bp + theme(axis.text.x = element_text(angle = 30, hjust = 1, vjust = 1))
+```
+
+```{r}
+bp + theme(axis.text.x = element_text(family = "Times", face = "italic", color = "darkred", size = rel(2)))
+```
+
+```{r}
+library(extrafont)
+```
+
+```{r}
+# font_import()
+# ... fail
+```
+
+```{r}
+# fonts()
+```
+> axis.text.x = element_text(): change shape of tick label
+* angle, hjust&vjust(loc.), family(font), face(typeset)
+
+# Changing the Text of Axis Labels
+```{r}
+hwp <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = sex)) +
+  geom_point()
+hwp
+```
+
+```{r}
+# set the axis labels
+hwp + xlab("Age in Years") + ylab("Height in inches")
+```
+
+```{r}
+hwp + labs(x = "Age in years", y = "Height in inches")
+```
+
+```{r}
+hwp + scale_y_continuous(name = "Height (inches)") + scale_x_continuous(name = "Age\n(years)")
+```
+> xlab(), ylab(), labs(), scale_x_continuous(), scale_y_continuous(): change labels
+
+# Removing Axis Labels
+```{r}
+p <- ggplot(PlantGrowth, aes(x = group, y = weight)) + geom_boxplot()
+p
+```
+
+```{r}
+p + theme(axis.title.x = element_blank())
+```
+
+```{r}
+p + xlab("")
+```
+> xlab(""), theme(axis.title.x = element_blank()): remove label of x-axis
+
+# Changing the Appearance of Axis Labels
+```{r}
+hwp <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = sex)) +
+  geom_point()
+hwp + theme(axis.title.x = element_text(face = "italic", color = "darkred", size = 14)) +
+  theme(axis.title.y = element_text(face = "italic", angle = 90, color = "darkred", size = 14)) +
+  ylab("Height\n(Inches)")
+```
+> element_text(): Edit axis label
+
+# Showing Lines Along the Axes
+```{r}
+p <- ggplot(heightweight, aes(x = ageYear, y = heightIn)) + geom_point()
+p
+```
+
+```{r}
+p + theme(axis.line = element_line(color = "black"))
+p + theme_bw()
+```
+
+```{r}
+p + theme_bw() + theme(panel.border = element_blank(), panel.grid = element_blank(),
+                       axis.line = element_line(color = "black"))
+```
+
+```{r}
+p + theme_bw() + theme(panel.border = element_blank(),
+                       axis.line = element_line(color = "black", size = 4, lineend = "square"))
+```

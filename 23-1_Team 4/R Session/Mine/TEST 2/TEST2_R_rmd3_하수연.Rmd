@@ -1,0 +1,232 @@
+---
+title: 'ggplot2: 3. Scatter Plots'
+author: "suyni00i"
+date: "2023-05-14"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+```
+
+# Making a Basic Scatter Plots
+```{r}
+str(heightweight)
+```
+
+```{r}
+head(heightweight[, c("ageYear", "heightIn")])
+```
+
+```{r}
+p <- ggplot(heightweight, aes(x = ageYear, y = heightIn))
+p + geom_point(shape = 21)
+```
+
+```{r}
+p + geom_point(sizq = 1.5)
+```
+# Grouping Data Points by a Variable Using Shape or Color
+```{r}
+head(heightweight[, c("sex", "ageYear", "heightIn")])
+```
+
+```{r}
+p <- ggplot(heightweight, aes(x = ageYear, y = heightIn, shape = sex, color = sex))
+p + geom_point()
+```
+
+```{r}
+p + geom_point() + scale_shape_manual(values = c(1, 2)) +
+  scale_color_brewer(palette = "Set1")
+```
+
+# Using Different Point Shapes
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn)) + geom_point(shape = 3)
+```
+
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn, shape = sex)) +
+  geom_point(size = 4) + scale_shape_manual(values = c(1, 4))
+```
+
+```{r}
+hw <- heightweight
+hw$weightGroup <- cut(hw$weightLb, breaks = c(-Inf, 100, Inf),
+                      labels = c("< 100", ">= 100"))
+ggplot(hw, aes(x = ageYear, y = heightIn, shape = sex, fill = weightGroup)) +
+  geom_point(size = 2.5) +
+  scale_shape_manual(values = c(21, 24)) +
+  scale_fill_manual(values = c(alpha("black", 0), "black"),
+                    guide = guide_legend(override.aes = list(shape = 21)))
+```
+> cut(): make weightGroup
+> scale_shape_manual(): shape of point
+> scale_fill_manual(): color of point
+
+# Mapping a Continuous Variable to Color or Size
+```{r}
+ggplot(heightweight, aes(ageYear, y = heightIn, color = weightLb)) +
+  geom_point()
+```
+
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn, size = weightLb)) +
+  geom_point()
+```
+
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn, size = weightLb)) +
+  geom_point()
+```
+
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn, fill = weightLb)) +
+  geom_point(shape = 21, size = 2.5) +
+  scale_fill_gradient(low = "black", high = "white")
+```
+
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn, fill = weightLb)) +
+  geom_point(shape = 21, size = 2.5) +
+  scale_fill_gradient(low = "black", high = "white", guide = guide_legend())
+```
+> scale_fill_gradient(low = "black", high = "white"): _black_ if low, _white_ if high
+> guide = guide_legend(): discrete legend
+
+```{r}
+ggplot(heightweight, aes(x = ageYear, y = heightIn, size = weightLb, color = sex)) +
+  geom_point(alpha = 0.5) +
+  scale_size(range = c(1, 6)) +
+  scale_color_brewer(palette = "Set1")
+```
+
+# Adding Fitted Regression Model Lines
+```{r}
+sp <- ggplot(heightweight, aes(x = ageYear, y = heightIn))
+sp + geom_point() + stat_smooth(method = lm)
+```
+
+```{r}
+sp + geom_point() + stat_smooth(method = lm, level = 0.99)
+```
+
+```{r}
+sp + geom_point() + stat_smooth(method = lm, se = FALSE)
+```
+
+```{r}
+sp + geom_point() + stat_smooth()
+# default: method = loess
+```
+> stat_smooth(): scatter plot + regression(method = lm)
+> level = 0.99: 99% confidence interval
+> se = FALSE: w/o confidence interval
+
+```{r}
+sps <- ggplot(heightweight, aes(x = ageYear, y = heightIn, color = sex)) +
+  geom_point() + scale_color_brewer(palette = "Set1")
+sps + stat_smooth(method = lm)
+```
+
+```{r}
+sps + stat_smooth(method = lm, fullrange = TRUE)
+# fullrange = TRUE: set full range as widest case
+```
+
+# Adding Annotations with Model Coefficients
+```{r}
+model <- lm(heightIn ~ ageYear, data = heightweight)
+summary(model)
+```
+
+```{r}
+sp <- ggplot(heightweight, aes(x = ageYear, y = heightIn)) + geom_point() +
+  stat_smooth(method = lm)
+sp + annotate("text", label = "r^2 == 0.42", parse = TRUE, x = 16.5, y = 52)
+```
+
+```{r}
+est <- unname(coef(model))
+eqn <- as.character(as.expression(
+  substitute(italic(y) == a + b * italic(x) * "," ~~ italic(r)^2 ~ "=" ~ r2,
+             list(a = format(est[1], digits = 3),
+                  b = format(est[2], digits = 3),
+                  r2 = format(summary(model)$r.squared, digits = 2)
+))))
+parse(text = eqn)
+```
+
+```{r}
+sp + annotate("text", label = eqn, parse = TRUE, x = Inf, y = -Inf, hjust = 1.1, vjust = -0.5)
+```
+> annotate(): show text, formulas, shapes, ... on graph
+* c.f geom(): mapping
+
+# Adding Marginal Rugs to a Scatter Plot
+```{r}
+ggplot(faithful, aes(x = eruptions, y = waiting)) + geom_point() + geom_rug()
+```
+
+```{r}
+ggplot(faithful, aes(x = eruptions, y = waiting)) + geom_point() + geom_rug(position = "jitter", size = 0.2)
+```
+> geom_rug(): add rug plot on each axis
+> position = "jitter": add random noise on overlapped points -> show density
+
+# Labeling Points in a Scatter Plots
+```{r}
+cs <- subset(countries, Year == 2009 & healthexp > 2000)
+str(cs)
+```
+
+```{r}
+sp <- ggplot(cs, aes(x = healthexp, y = infmortality)) + geom_point()
+sp + geom_text(aes(label = Name), size = 4)
+```
+
+```{r}
+sp + geom_text(aes(label = Name), size = 4, vjust = -1)
+```
+
+```{r}
+sp + geom_text(aes(label = Name), size = 4, hjust = -0.1)
+```
+> geom_text(label = Name): show _Name_ as text label
+> vjust, hjust: edit loc of text label
+
+```{r}
+sp + annotate("text", x = 4350, y = 5.4, label = "Canada") +
+  annotate("text", x = 7400, y = 6.8, label = "USA")
+```
+
+```{r}
+cs$Name1 <- cs$Name
+idx <- cs$Name1 %in% c("Canada", "Ireland", "United Kingdom", "United States", "Japan", "New Zealand", "Iceland", "Luxembourg", "Netherland", "Switzerland")
+cs$Name1[!idx] <- NA
+ggplot(cs, aes(x = healthexp, y = infmortality, label = Name1)) + geom_point() +
+  geom_text(aes(x = healthexp + 100, lable = Name1), size = 4, hjust = 0) +
+              xlim(2000, 9000)
+```
+> vec1 %in% vec2: select same elements as _vec2_ among _vec1_
+* (is.element(vec1, vec2))
+
+# Creating a Balloon Plot
+```{r}
+cdat <- subset(countries, Year == 2009 &
+                 Name %in% c("Canada", "Ireland", "United Kingdom", "United States", "New Zealand", "Iceland", "Japan", "Luxembourg", "Netherland", "Switzerland"))
+p <- ggplot(cdat, aes(x = healthexp, y = infmortality, size = GDP)) +
+  geom_point(shape = 21, color = "black", fill = "cornsilk")
+p
+```
+
+```{r}
+p + scale_size_area(max_size = 15)
+```
+
+```{r}
+p + scale_size(range = c(3, 10))
+# range = c(3, 10): set biggest point's size
+```

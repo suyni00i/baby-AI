@@ -1,0 +1,37 @@
+---
+title: "TEST2"
+author: "suyni00i"
+date: "2023-05-11"
+output: html_document
+---
+
+```{r}
+# library
+library(tidyverse)
+```
+
+# ggplot2
+## ggplot()
+```{r}
+iris %>% # name of data
+  ggplot()
+```
+
+## geom_
+### geom_?
+> geom_point():산점도 / 산포도
+> geom_line(): 선 그래프
+> geom_boxplot(): 박스플롯
+> geom_histogram(): 히스토그램
+> geom_bar(), geom_col(): 막대 그래프
+
+### aes()
+> aes(): x축과 y축에 어떤 값을 넣을지를 결정
+> fill: 내부 색상
+> col: 테두리
+
+```{r}
+iris %>% 
+  ggplot() +
+  geom_point(aes(x = Sepal.Length, y = Sepal.Width))
+```

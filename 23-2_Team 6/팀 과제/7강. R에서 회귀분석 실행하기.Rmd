@@ -1,0 +1,71 @@
+---
+title: "7강. R에서 회귀분석 실행하기"
+author: "suyni00i"
+date: "2023-09-09"
+output: html_document
+---
+
+```{r}
+dir = "/Users/suyni00i/Documents/DAT/Team 06/팀 과제/R/data/examscore.csv"
+```
+
+```{r}
+mydata <- read.csv(dir, header = TRUE)
+with(mydata,
+     plot(midterm, final, asp = 1,
+          xlab = "midterm",
+          ylab = "final",
+          main = "score_scatter"))
+```
+
+```{r}
+result <- lm(final ~ midterm, data = mydata)
+attributes(result)
+```
+
+```{r}
+result$coefficients
+# 절편 | 기울기
+```
+
+```{r}
+plot(mydata$midterm, mydata$final, asp = 1,
+     xlab = "midterm",
+     ylab = "final",
+     main = "score_scatter")
+abline(result$coefficients)
+```
+
+```{r}
+summary(result)
+```
+
+### 얻을 수 있는 결과값들
+```{r}
+# 1. 입력한 코드 공식
+result$call
+```
+
+```{r}
+# 2. 구한 직선 정보
+result$coefficients
+```
+
+```{r}
+# 3. 직선을 사용한 예측값, \hat{final}
+head(result$fitted.values)
+```
+
+```{r}
+# 4. 잔차 정보
+summary(result$residuals)
+head(mydata$final - result$fitted.values)
+head(result$residuals)
+```
+
+```{r}
+# 5. 여러 회귀 분석에 관한 그래프
+par(mfrow = c(2, 2))
+plot(result)
+```
+

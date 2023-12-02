@@ -1,0 +1,204 @@
+---
+title: 'ggplot2: 1. Bar Graphs'
+author: "suyni00i"
+date: "2023-05-11"
+output: html_document
+---
+
+```{r}
+# library
+library(ggplot2)
+library(gcookbook)
+```
+
+# Making Basic Bar Graph
+```{r}
+# method 1
+ggplot(pg_mean, aes(x = group, y = weight)) +
+  geom_col()
+```
+
+```{r}
+# method 2
+p <- ggplot(pg_mean, aes(x = group, y = weight))
+p + geom_bar(stat = "identity")
+```
+
+```{r}
+str(BOD)
+ggplot(BOD, aes(x = Time, y = demand)) + geom_col()
+```
+
+```{r}
+ggplot(BOD, aes(x = factor(Time), y = demand)) + geom_col()
+```
+> factor: except empty x
+
+```{r}
+BOD2 <- BOD
+BOD2$fTime <- factor(BOD$Time)
+str(BOD)
+```
+
+```{r}
+ggplot(BOD2, aes(x = fTime, y = demand)) + geom_col()
+```
+
+```{r}
+ggplot(pg_mean, aes(x = group, y = weight)) +
+  geom_col(fill = "lightblue", color = "black")
+```
+
+# Grouping Bar Together
+```{r}
+p <- ggplot(cabbage_exp, aes(x = Date, y = Weight, fill = Cultivar))
+p + geom_col(position = "dodge")
+```
+> position = "dodge": side-by-side if two
+> fill = Cultivar: legend
+
+```{r}
+p + geom_col(position = "dodge", color = "black") +
+  scale_fill_brewer(palette = "Pastel1")
+```
+> scale_fill_brewer(): extra option for fill = _"color"_
+
+```{r}
+ce <- cabbage_exp
+ce[c(1, 6), 3] <-  NA
+# regard (1, 3), (6, 3) as missing
+ggplot(ce, aes(x = Date, y = Weight, fill = Cultivar)) + 
+  geom_col(position = "dodge", color = "black") +
+  scale_fill_brewer(palette = "Pastel1")
+```
+
+```{r}
+ce2 <- cabbage_exp[-c(1, 6), ]
+# delete row 1, 6
+ggplot(ce2, aes(x = Date, y = Weight, fill = Cultivar)) +
+  geom_col(position = "dodge", color = "black") +
+  scale_fill_brewer(palette = "Pastel1")
+```
+
+# Making a Bar Graph of Counts
+```{r}
+str(diamonds)
+```
+
+```{r}
+ggplot(diamonds, aes(x = cut)) + geom_bar()
+```
+
+```{r}
+ggplot(diamonds, aes(x = carat)) + geom_bar()
+```
+
+
+```{r}
+ggplot(diamonds, aes(x = carat)) + geom_histogram()
+```
+>geom_bar(): w/o y = "___"
+* if x = numeric: == geom_histogram()
+
+> geom_histogram()
+
+# Using Colors in a Bar Graph
+```{r}
+str(uspopchange)
+```
+
+```{r}
+head(uspopchange)
+```
+
+```{r}
+upc <- subset(uspopchange, rank(Change) > 40)
+upc
+```
+
+```{r}
+ggplot(upc, aes(x = Abb, y = Change, fill = Region)) + geom_col()
+```
+> str(data): show R data's structural char.
+> head(data): show 6 rows from the front
+> tail(data): show 6 rows from the back
+> subset(data, condition): select and show _data_ w/ _condition_
+> fill = Region: select color accd to _Reigion_
+
+```{r}
+ggplot(upc, aes(x = reorder(Abb, Change), y = Change, fill = Region)) +
+  geom_col(color = "black") +
+  scale_fill_manual(values = c("#669933", "#FFCC66")) +
+  xlab("State")
+```
+> reorder(var1, var2): sort var1 accd to var2
+> scale_fill_manual: select colors of fill (#FFGGBB: RGB color code)
+> xlab("___"): set x label
+
+# Coloring Negative and Positive Bars Differently
+```{r}
+csub <- subset(climate, Source == "Berkeley" & Year >= 1900)
+# data only w/ Source == "Berkeley" & Year >= 1900
+csub$pos <- csub$Anomaly10y >= 0
+# pos: TRUE if Anomaly10y >= 0, else FALSE
+p <- ggplot(csub, aes(x = Year, y = Anomaly10y, fill = pos))
+p + geom_col(position = "identity")
+```
+
+```{r}
+p <- ggplot(csub, aes(x = Year, y = Anomaly10y, fill = pos))
+p + geom_col(position = "identity", color = "black", size = 0.25) +
+  scale_fill_manual(values = c("#CCEEFF", "#FFDDDD"), guide = FALSE)
+```
+> size = ___: set bar's width
+> guide = FALSE: no legend printed
+
+# Adjusting Bar Width and Spacing
+```{r}
+p <- ggplot(pg_mean, aes(x = group, y = weight))
+p + geom_col() # default width = 0.9
+```
+
+```{r}
+p + geom_col(width = 0.5) # narrower
+p + geom_col(width = 1) # wider
+```
+
+```{r}
+p <- ggplot(cabbage_exp, aes(x = Date, y = Weight, fill = Cultivar))
+p + geom_col(width = 0.5, position = "dodge")
+```
+
+```{r}
+p + geom_col(width = 0.5, position = position_dodge(0.7))
+```
+> position = "dodge" == position = position_dodge( _value of width_ )
+
+# Making Stacked Bar Graph
+```{r}
+p <- ggplot(cabbage_exp, aes(x = Date, y = Weight, fill = Cultivar))
+p + geom_col()
+```
+
+```{r}
+p + geom_col() + guides(fill = guide_legend(reverse = TRUE))
+# reverse legend
+```
+
+# Adding Labels to a Bar Graph
+```{r}
+p <- ggplot(cabbage_exp, aes(x = interaction(Date, Cultivar), y = Weight)) +
+  geom_col()
+p + geom_text(aes(label = Weight))
+```
+
+```{r}
+p + geom_text(aes(label = Weight), vjust = 1.5, color = "white")
+```
+
+```{r}
+p + geom_text(aes(label = Weight), vjust = -0.2)
+```
+> interaction(Date, Cultivate): interaction btw _Date, Cultivate_
+> geom_text(): print label
+* vjust: move the loc of text

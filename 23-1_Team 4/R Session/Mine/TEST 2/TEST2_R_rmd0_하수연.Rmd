@@ -1,0 +1,22 @@
+---
+title: 'ggplot2: 0. Intro'
+author: "suyni00i"
+date: "2023-05-11"
+output: html_document
+---
+
+```{r}
+# install.packages(c("ggplot2", "gcookbook", dependencies = TRUE))
+```
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+```
+
+```{r}
+ggplot(ToothGrowth, aes(x = supp, y = len)) +
+  geom_boxplot()
+```

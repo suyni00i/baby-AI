@@ -1,0 +1,103 @@
+---
+title: "TEST 2"
+author: "suyni00i"
+date: "2023-05-23"
+output: html_document
+---
+
+### 0. Packages
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+## 1. Data Wragling Problem
+### 1.1 Sales.csv 를 불러오시오.[5점]
+```{r}
+sales <- read.csv("/Users/suyni00i/Documents/DAT/R Session/data/Sales.csv")
+head(sales)
+```
+
+### 1.2 데이터의 속성을 확인하시오[5점]
+```{r}
+glimpse(sales)
+```
+
+### 1.3 다음과 같이 변수 값과 속성을 변경 후 str()을 통해 확인하시오.[25 점]
+```{r}
+library(stringr)
+library(lubridate)
+
+sales$Order.Date <- str_sub(sales$Order.Date, start = 1, end = 2)
+sales$month <- c("Jan", "Feb", "Mar", "Apr")[as.numeric(sales$Order.Date)]
+sales <- subset(sales, select = - Order.Date)
+```
+
+```{r}
+sales$Address <- sapply(sales$Purchase.Address, function(x) {
+  split_address <- strsplit(x, ", ")[[1]]
+  city <- split_address[2]
+  return(city)
+})
+sales <- subset(sales, select = - Purchase.Address)
+sales <- subset(sales, select = - X)
+
+glimpse(sales)
+```
+
+### 1.4 월별로 가장 많이 팔린 상위 3개 제품을 구하시오[15점]
+```{r}
+month_sales <- sales %>% 
+  group_by(month, Product) %>% 
+  summarise(count_sales = n()) %>% 
+  ungroup()
+
+top3 <- month_sales %>% 
+  group_by(month) %>% 
+  top_n(3, count_sales) %>% 
+  arrange(month, desc(count_sales)) %>% 
+  arrange(match(month, c("Jan", "Feb", "Mar", "Apr")))
+
+top3
+# 분명 형식은 잘 나오는데 count_sales 수가 답?이랑 달라요
+```
+
+### 1.5 지역별 평균 소비액을 구하시오[15점]
+```{r}
+sales$consume <- sales$Quantity.Ordered * sales$Price.Each
+sales %>% 
+  group_by(Address) %>% 
+  summarise(consume = round(mean(consume))) %>% 
+  arrange(desc(consume))
+```
+
+## Visualization Problem(Using ggplot2)
+### 2.1 헤드폰의 월별 판매량을 그리시오 [10점]
+```{r}
+headphone_sales <- sales %>% 
+  filter(grepl("Headphones", Product)) %>% 
+  mutate(month = factor(month, levels = c("Jan", "Feb", "Mar", "Apr")))
+  
+ggplot(headphone_sales) +
+  geom_bar(aes(Product, fill = month), position = "dodge")
+```
+
+### 2.2 지역별 총 소비액을 월별로 그리시오 [25점]
+```{r}
+sales <- sales %>%
+  mutate(total = Quantity.Ordered * Price.Each) %>%
+  group_by(Address, month) %>%
+  summarise(total = round(sum(total)))
+
+sales
+```
+
+```{r}
+ggplot(sales) +
+  geom_bar(aes(x = month, y = total, fill = month), position = "dodge", stat = "identity") +
+  facet_wrap(~ Address, ncol = 9) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_x_discrete(limits = c("Jan", "Feb", "Mar", "Apr"))
+```
+

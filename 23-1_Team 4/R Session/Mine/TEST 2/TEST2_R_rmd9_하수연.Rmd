@@ -1,0 +1,82 @@
+---
+title: 'ggplot2: 9. Facets'
+author: "suyni00i"
+date: "2023-05-17"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+```
+
+# Splitting Data into Subplots with Facets
+```{r}
+str(mpg)
+```
+
+```{r}
+p <- ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(size = 0.8)
+# faceted by drv, in vertically arranged subpanels
+p + facet_grid(drv ~ .)
+```
+
+```{r}
+# faceted byb cyl, in horizontally arranged subpanels
+p + facet_grid(. ~ cyl)
+```
+> facet_grid(drv ~ .): set facet vertical accd to drv
+> facet_grid(. ~ cyl): set facet horizontal accd to cyl
+
+```{r}
+p <- ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(size = 0.8)
+p + facet_grid(drv ~ cyl)
+```
+> facet_grid(drv ~ cyl): scatterplot btw _displ_ & _hwy_
+* horizontal axis = _drv_, vertical axis = _cyl_
+
+```{r}
+p <- ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(size = 0.8)
+p + facet_wrap(~ class, nrow = 2)
+```
+
+```{r}
+p + facet_wrap(~ class, ncol = 5)
+
+```
+> facet_wrap(~ class, nrow = 2): scatterplot btw _displ_ & _hwy_
+* array: row = _2_
+> facet_wrap(~ class, ncol = 5): scatterplot btw _displ_ & _hwy_
+* array: column = _5_
+
+# Using Fact with Different Axes
+```{r}
+p <- ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(size = 0.8)
+p + facet_grid(drv ~ cyl, scales = "free_y")
+# scales = "free_y": re-scale vertical-axis of facets
+```
+
+```{r}
+p + facet_grid(drv ~ cyl, scales = "free")
+# scales = "free":  re-scale vertical & horizontal axes of facets
+```
+
+# Changing the Text of Facet Labels
+```{r}
+mpg2 <- mpg
+levels(mpg2$drv)
+```
+
+```{r}
+levels(mpg2$drv) <- c("4wd", "Front", "Rear")
+ggplot(mpg2, aes(x = displ, y = hwy)) + geom_point(size = 0.5) + facet_grid(drv ~ .)
+```
+
+# Changing the Appearance of Facet Labels
+```{r}
+ggplot(cabbage_exp, aes(x = Cultivar, y = Weight)) +
+  geom_col() +
+  facet_grid(. ~ Date) +
+  theme(strip.text = element_text(face = "bold", size = rel(1.5), color = "red"),
+        strip.background = element_rect(fill = "lightblue", color = "black", size = 1))
+```

@@ -1,0 +1,83 @@
+---
+title: "회귀분석 심화"
+author: "suyni00i"
+date: "2023-09-19"
+output: html_document
+---
+
+```{r}
+# setwd("/Users/suyni00i/Documents/DAT/23-2_Team 6/팀 과제/R/data/")
+```
+
+```{r}
+# import
+df = read.csv("/Users/suyni00i/Documents/DAT/23-2_Team 6/팀 과제/R/data/income.csv")
+head(df)
+```
+
+```{r}
+# column 확인
+ls(df)
+```
+
+```{r}
+# 행/열 개수 확인
+dim(df)
+# 어떤 값이 얼마나 들었는지 확인
+table(df$relationship)
+```
+
+```{r}
+df <- subset(df, select = -c(capital.gain, capital.loss, education, education.num, income, occupation, native.country, marital.status, workclass))
+ls(df)
+```
+
+```{r}
+library(dplyr)
+
+# ? 값들 제거
+df <- df %>% 
+  filter_all(all_vars(. != "?"))
+dim(df)
+
+# 모델 선언
+model <- lm(fnlwgt~age+hours.per.week+as.factor(race)+as.factor(relationship)+as.factor(sex), data = df)
+par(mfrow = c(1, 1))
+plot(model)
+```
+
+# 회귀분석 가정
+## 선형성
+```{r}
+plot(model$residuals~model$fitted.values)
+abline(h = 1, col = 'red')
+```
+
+## 다중공선성
+```{r}
+library("car")
+vif(model)
+```
+## 등분산성
+```{r}
+plot(model$residuals~model$fitted.values)
+abline(h = 0, col = 'blue')
+```
+## 정규성
+```{r}
+res <- resid(model)
+qqnorm(res)
+qqline(res)
+```
+# R-Squared
+```{r}
+summary(model)
+```
+# 함수 형태의 변환
+```{r}
+log_fnlwgt = log(df$fnlwgt)
+log_model = lm(log_fnlwgt~age+hours.per.week+as.factor(race)+as.factor(relationship)+as.factor(sex), data = df)
+plot(log_model)
+summary(log_model)
+```
+

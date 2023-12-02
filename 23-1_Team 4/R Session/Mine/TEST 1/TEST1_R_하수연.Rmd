@@ -1,0 +1,205 @@
+---
+title: 'TEST1_R_하수연'
+author: "suyni00i"
+date: "2023-05-01"
+output: html_document
+---
+
+```{r}
+library("tidyverse")
+```
+
+```{r}
+data(mpg)
+glimpse(mpg)
+```
+
+```{r}
+head(mpg)
+```
+
+```{r}
+summary(mpg$cty)
+```
+
+```{r}
+filter(mpg, cty > 17)
+```
+
+```{r}
+# 연습문제
+filter(mpg, hwy >= 10)
+filter(mpg, year >= 2000)
+filter(mpg, cty < 10 & year < 2000)
+```
+
+```{r}
+filter(mpg, cyl %in% 4)
+filter(mpg, cyl %in% c(4, 6))
+```
+
+```{r}
+# 연습문제
+filter(mpg, displ %in% 1.8)
+filter(mpg, displ %in% 2.0 & cyl %in% c(6, 8))
+```
+
+```{r}
+# pipleline '%>%'
+mpg %>%
+  filter(year > 2000 & class %in% c("subcompact"))
+```
+
+```{r}
+# select()
+mpg %>% 
+  select(model, year, class)
+
+# 3 ways to choose row(s) to see
+mpg %>%
+  select(-hwy, -fl, -class)
+
+mpg %>% 
+  select(manufacturer:cty)
+
+mpg %>% 
+  select(-hwy:-class)
+```
+
+```{r}
+# filter() + select()
+mpg %>% 
+  filter(cty > 20) %>%
+  select(model, year, cty:class)
+```
+
+```{r}
+# group_by(), summarise()
+mpg %>% 
+  group_by(model) %>%
+  summarise(hwy_mean = mean(hwy))
+```
+
+```{r}
+# arrange
+# before_arrange
+mpg %>%
+  group_by(model) %>%
+  summarise(hwy_mean = mean(hwy), hwy_sum = sum(hwy))
+
+# after_arrange
+mpg %>%
+  group_by(model) %>%
+  summarise(hwy_mean = mean(hwy), hwy_sum = sum(hwy)) %>%
+  arrange(hwy_mean)
+
+# after_arrange_w/desc
+mpg %>%
+  group_by(model) %>%
+  summarise(hwy_mean = mean(hwy), hwy_sum = sum(hwy)) %>%
+  arrange(desc(hwy_mean))
+```
+
+```{r}
+# 결측치 처리(1)
+nycflights13::flights %>%
+  filter(!is.na(dep_delay)) %>%
+  group_by(month) %>%
+  summarise(delay_mean = mean(dep_delay))
+```
+
+```{r}
+# 결측치 처리(2)
+nycflights13::flights %>%
+  group_by(month) %>%
+  summarise(delay_mean = mean(dep_delay, na.rm = TRUE))
+```
+
+```{r}
+# 연습문제(1)
+mpg %>%
+  group_by(year) %>%
+  summarise(hwy_mean = mean(hwy))
+
+mpg %>%
+  group_by(year) %>%
+  summarise(cty_mean = mean(cty)) %>%
+  arrange(desc(cty_mean))
+```
+
+```{r}
+# 연습문제(2)
+mpg %>%
+  group_by(class) %>%
+  summarise(cty_sum = sum(cty))
+
+mpg %>%
+  group_by(class) %>%
+  summarise(hwy_sum = sum(hwy)) %>%
+  arrange(hwy_sum)
+```
+
+```{r}
+# mutate
+mpg %>% 
+  mutate(hwy_per_cty = hwy / cty)
+```
+
+```{r}
+# 최종 연습문제 (pre)
+library(nycflights13)
+data(flights)
+glimpse(flights)
+```
+
+```{r}
+# 1
+filter(flights, month %in% c(7:9))
+```
+
+```{r}
+# 2
+filter(flights, dest %in% c("IAH","HOU"))
+```
+
+```{r}
+# 3
+filter(flights, arr_delay == 60 & dep_delay == 0)
+```
+
+```{r}
+# 4
+flights %>%
+  select(year:day)
+```
+
+```{r}
+# 5
+flights %>%
+  select(dep_time:arr_delay)
+```
+
+```{r}
+# 6-1
+flights %>%
+  group_by(year) %>%
+  summarise(dep_delay_mean = mean(dep_delay, na.rm = TRUE))
+
+# 6-2
+flights %>%
+  group_by(month) %>%
+  summarise(dep_delay_mean = mean(dep_delay, na.rm = TRUE))
+
+# 6-3
+flights %>%
+  group_by(day) %>%
+  summarise(dep_delay_mean = mean(dep_delay, na.rm = TRUE))
+```
+
+```{r}
+# 7
+flights %>%
+  group_by(dest) %>%
+  summarise(dep_delay_mean = mean(dep_delay, na.rm = TRUE)) %>%
+  arrange(desc(dep_delay_mean))
+```
